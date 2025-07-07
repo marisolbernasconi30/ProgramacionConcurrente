@@ -3,6 +3,13 @@ package usosThread;
 public class BancoSinSincronizar3 {
     public static void main (String [] args){
 
+        Banco b=new Banco();
+
+        for(int i=0; i<100; i++){
+            EjecucionTransferencias r= new EjecucionTransferencias(b, i, 2000);
+            Thread t=new Thread(r);
+            t.start();
+        }
     }
 }
 
@@ -42,4 +49,35 @@ class Banco{
     }
     private final double [] cuentas;
 
+}
+
+class EjecucionTransferencias implements Runnable{
+
+    public EjecucionTransferencias(Banco b, int de, double max){
+
+        banco=b;
+        deLaCuenta=de;
+        cantidadMax=max;
+    }
+
+
+    public void run() {
+
+        while(true){
+            int paraLaCuenta=(int)(100*Math.random());
+            double cantidad=cantidadMax*Math.random();
+            banco.transferencia(deLaCuenta, paraLaCuenta, cantidad);
+            try {
+                Thread.sleep((int)(Math.random()*10));
+            } catch (InterruptedException e) {
+                
+            }
+        }
+        
+    }
+
+    private Banco banco;
+    private int deLaCuenta;
+    private double cantidadMax;
+    
 }

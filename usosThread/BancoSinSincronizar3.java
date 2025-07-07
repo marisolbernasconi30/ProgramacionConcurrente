@@ -1,4 +1,6 @@
 package usosThread;
+//import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.*;
 
 public class BancoSinSincronizar3 {
     public static void main (String [] args){
@@ -24,6 +26,13 @@ class Banco{
     }
 
     public void transferencia (int cuenta_origen, int cuenta_destino, double cantidad){
+
+
+        cierre_banco.lock(); //BLOQUEA EL HILO
+        try{
+
+        
+
         if (cuentas[cuenta_origen]<cantidad){  //EVACUA QUE EL SALDO NO ES INFERIOR A LA TRANSFERENCIA
             return;
         }
@@ -36,7 +45,10 @@ class Banco{
         cuentas[cuenta_destino]+=cantidad; //LE SUMA LA TRANSFERENCIA A LA CUENTA QUE NECESITO
 
         System.out.printf("Saldo total: %10.2f%n ", getSaldoTotal());
-         
+         } finally{
+            cierre_banco.unlock(); //DESBLOQUEA EL HILO
+         }
+
     }
 
     public double getSaldoTotal(){
@@ -48,6 +60,9 @@ class Banco{
         return suma_cuentas;
     }
     private final double [] cuentas;
+    
+    private ReentrantLock cierre_banco=new ReentrantLock();
+
 
 }
 
@@ -66,7 +81,7 @@ class EjecucionTransferencias implements Runnable{
         while(true){
             int paraLaCuenta=(int)(100*Math.random());
             double cantidad=cantidadMax*Math.random();
-            banco.transferencia(deLaCuenta, paraLaCuenta, cantidad);
+            banco.transferencia(deLaCuenta, paraLaCuenta, cantidad); //CULPA DE ESTE MÉTODO DABAN MAL LOS NUMEROS
             try {
                 Thread.sleep((int)(Math.random()*10));
             } catch (InterruptedException e) {

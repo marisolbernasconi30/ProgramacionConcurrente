@@ -1,6 +1,6 @@
 package usosThread;
 //import java.util.concurrent.locks.*;
-import java.util.concurrent.locks.*;
+//import java.util.concurrent.locks.*;
 
 public class BancoSinSincronizar3 {
     public static void main (String [] args){
@@ -24,20 +24,25 @@ class Banco{
             cuentas[i]=2000; //CON ESTO, A CADA CUENTA LE PUSE DOS MIL EUROS
         }
 
-        saldoSuficiente = cierre_banco.newCondition();
+        //saldoSuficiente = cierre_banco.newCondition();
     }
 
-    public void transferencia (int cuenta_origen, int cuenta_destino, double cantidad) throws InterruptedException{
+    public synchronized void transferencia (int cuenta_origen, int cuenta_destino, double cantidad) throws InterruptedException{
 
 
-        cierre_banco.lock(); //BLOQUEA EL HILO
-        try{
+       // cierre_banco.lock(); //BLOQUEA EL HILO
+        //try{
 
         
 
         while (cuentas[cuenta_origen]<cantidad){  //EVACUA QUE EL SALDO NO ES INFERIOR A LA TRANSFERENCIA
-            saldoSuficiente.await(); //EL HILO SE MANTIENE EN LA ESPERA
+
+            //saldoSuficiente.await(); //EL HILO SE MANTIENE EN LA ESPERA
+
+            wait();
+
         }
+
         System.out.println(Thread.currentThread());  //IMPRIMIMOS EN CONSOLA EL HILO
 
         cuentas[cuenta_origen]-=cantidad; //CON ESTO DESCONTAMOS LA TRANSFERENCIA
@@ -48,12 +53,14 @@ class Banco{
 
         System.out.printf("Saldo total: %10.2f%n ", getSaldoTotal());
 
-        saldoSuficiente.signalAll(); //LIBERA EL HILO
+        //saldoSuficiente.signalAll(); //LIBERA EL HILO
 
-         } finally{
-            
-            cierre_banco.unlock(); //DESBLOQUEA EL HILO
-         }
+        notifyAll();
+
+         //} finally{
+
+           // cierre_banco.unlock(); //DESBLOQUEA EL HILO
+        // }
 
     }
 
@@ -67,9 +74,9 @@ class Banco{
     }
     private final double [] cuentas;
     
-    private ReentrantLock cierre_banco=new ReentrantLock();
+   // private ReentrantLock cierre_banco=new ReentrantLock();
 
-    private Condition saldoSuficiente;
+   // private Condition saldoSuficiente;
 }
 
 class EjecucionTransferencias implements Runnable{

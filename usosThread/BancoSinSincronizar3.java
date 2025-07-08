@@ -23,9 +23,11 @@ class Banco{
         for (int i=0; i<cuentas.length; i++){
             cuentas[i]=2000; //CON ESTO, A CADA CUENTA LE PUSE DOS MIL EUROS
         }
+
+        saldoSuficiente = cierre_banco.newCondition();
     }
 
-    public void transferencia (int cuenta_origen, int cuenta_destino, double cantidad){
+    public void transferencia (int cuenta_origen, int cuenta_destino, double cantidad) throws InterruptedException{
 
 
         cierre_banco.lock(); //BLOQUEA EL HILO
@@ -33,8 +35,8 @@ class Banco{
 
         
 
-        if (cuentas[cuenta_origen]<cantidad){  //EVACUA QUE EL SALDO NO ES INFERIOR A LA TRANSFERENCIA
-            return;
+        while (cuentas[cuenta_origen]<cantidad){  //EVACUA QUE EL SALDO NO ES INFERIOR A LA TRANSFERENCIA
+            saldoSuficiente.await(); //EL HILO SE MANTIENE EN LA ESPERA
         }
         System.out.println(Thread.currentThread());  //IMPRIMIMOS EN CONSOLA EL HILO
 
@@ -45,7 +47,11 @@ class Banco{
         cuentas[cuenta_destino]+=cantidad; //LE SUMA LA TRANSFERENCIA A LA CUENTA QUE NECESITO
 
         System.out.printf("Saldo total: %10.2f%n ", getSaldoTotal());
+
+        saldoSuficiente.signalAll(); //LIBERA EL HILO
+
          } finally{
+            
             cierre_banco.unlock(); //DESBLOQUEA EL HILO
          }
 
@@ -63,7 +69,7 @@ class Banco{
     
     private ReentrantLock cierre_banco=new ReentrantLock();
 
-
+    private Condition saldoSuficiente;
 }
 
 class EjecucionTransferencias implements Runnable{
@@ -77,17 +83,17 @@ class EjecucionTransferencias implements Runnable{
 
 
     public void run() {
-
-        while(true){
+            try {
+              while(true){
             int paraLaCuenta=(int)(100*Math.random());
             double cantidad=cantidadMax*Math.random();
             banco.transferencia(deLaCuenta, paraLaCuenta, cantidad); //CULPA DE ESTE MÉTODO DABAN MAL LOS NUMEROS
-            try {
-                Thread.sleep((int)(Math.random()*10));
+            Thread.sleep((int)(Math.random()*10));
+            }
             } catch (InterruptedException e) {
                 
             }
-        }
+        
         
     }
 
